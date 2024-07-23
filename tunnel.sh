@@ -76,6 +76,16 @@ configure_haproxy() {
     restart_haproxy
 }
 
+# Function to install and configure netplan
+setup_netplan() {
+    echo "Installing and configuring netplan..."
+    sudo apt install netplan.io -y
+    sudo systemctl unmask systemd-networkd.service
+    sudo systemctl restart networking
+    sudo netplan apply
+    sudo systemctl restart networking
+}
+
 # Function to display the tunnel menu
 display_tunnel_menu() {
     echo "Select an option:"
@@ -188,6 +198,7 @@ while true; do
 
     case $main_option in
         1)
+            setup_netplan
             while true; do
                 clear
                 display_tunnel_menu
