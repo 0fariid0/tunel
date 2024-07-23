@@ -13,30 +13,30 @@ To download and execute the script, run the following commands:
 1. **Using curl**:
 
     ```bash
-    curl -O https://raw.githubusercontent.com/username/netplan-scripts/main/edit_tunnel.sh
-    chmod +x edit_tunnel.sh
-    sudo ./edit_tunnel.sh
+    curl -O https://raw.githubusercontent.com/0fariid0/tunel/main/tunnel.sh
+    chmod +x tunnel.sh
+    sudo ./tunnel.sh
     ```
 
 2. **Using wget**:
 
     ```bash
-    wget https://raw.githubusercontent.com/username/netplan-scripts/main/edit_tunnel.sh
-    chmod +x edit_tunnel.sh
-    sudo ./edit_tunnel.sh
+    wget https://raw.githubusercontent.com/0fariid0/tunel/main/tunnel.sh
+    chmod +x tunnel.sh
+    sudo ./tunnel.sh
     ```
 
-Replace `username` with your GitHub username and `netplan-scripts` with your repository name.
+Replace `tunnel.sh` with the appropriate script name if it changes.
 
 ### Commands Explained
 
-- `curl -O https://raw.githubusercontent.com/username/netplan-scripts/main/edit_tunnel.sh` or `wget https://raw.githubusercontent.com/username/netplan-scripts/main/edit_tunnel.sh`:
+- `curl -O https://raw.githubusercontent.com/0fariid0/tunel/main/tunnel.sh` or `wget https://raw.githubusercontent.com/0fariid0/tunel/main/tunnel.sh`:
   Downloads the script to your current directory.
 
-- `chmod +x edit_tunnel.sh`:
+- `chmod +x tunnel.sh`:
   Makes the script executable.
 
-- `sudo ./edit_tunnel.sh`:
+- `sudo ./tunnel.sh`:
   Executes the script with superuser privileges.
 
 ## License
