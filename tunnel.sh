@@ -25,8 +25,9 @@ handle_delete_tunnel() {
     fi
 }
 
-# Function to handle Ping Forever menu
-ping_forever_menu() {
+# Function to handle Ping Forever for Server Kharej (KH)
+ping_forever_kh() {
+    echo "You selected Ping Forever for Server Kharej (KH)"
     while true; do
         clear
         echo "Ping Forever Options:"
@@ -101,7 +102,8 @@ while true; do
     echo "Select an option:"
     echo "1 - Tunnel"
     echo "2 - Ping Forever"
-    echo "Enter your choice [1-2]: "
+    echo "3 - Exit"
+    echo "Enter your choice [1-3]: "
     read main_option
 
     case $main_option in
@@ -139,7 +141,12 @@ while true; do
             done
             ;;
         2)
-            ping_forever_menu
+            echo "Ping Forever is only available for Server Kharej (KH)."
+            ping_forever_kh
+            ;;
+        3)
+            echo "Exiting script."
+            break
             ;;
         *)
             echo "Invalid option. Please try again."
