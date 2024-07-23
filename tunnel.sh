@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Function to clean up previous versions of the script
+cleanup_previous_versions() {
+    echo "Cleaning up previous versions of the script..."
+    if [ -f "/usr/local/bin/old_script.sh" ]; then
+        sudo rm /usr/local/bin/old_script.sh
+        echo "Old script removed."
+    fi
+}
+
 # Function to handle Server Iran (IR)
 handle_ir() {
     echo "You selected Server Iran (IR)"
@@ -105,6 +114,8 @@ EOL
 }
 
 # Main Loop
+cleanup_previous_versions
+
 while true; do
     clear
     echo "Select an option:"
