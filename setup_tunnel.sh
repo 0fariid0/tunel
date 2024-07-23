@@ -1,27 +1,21 @@
 #!/bin/bash
 
+# Define the path for the scripts
+TUNNEL_SCRIPT_PATH="/usr/local/bin/tunnel.sh"
+UPDATE_SCRIPT_PATH="/usr/local/bin/update_script.sh"
+
 # Download the tunnel script
-echo "Downloading the tunnel script..."
-wget https://raw.githubusercontent.com/0fariid0/tunel/main/tunnel.sh
+echo "Downloading the latest tunnel script..."
+wget https://raw.githubusercontent.com/0fariid0/tunel/main/tunnel.sh -O $TUNNEL_SCRIPT_PATH
 
-# Check if the download was successful
-if [ $? -ne 0 ]; then
-    echo "Failed to download the tunnel script. Exiting."
-    exit 1
-fi
+# Download the update script
+echo "Downloading the update script..."
+wget https://raw.githubusercontent.com/0fariid0/tunel/main/update_script.sh -O $UPDATE_SCRIPT_PATH
 
-# Make the tunnel script executable
-echo "Making the tunnel script executable..."
-chmod +x tunnel.sh
+# Make the scripts executable
+chmod +x $TUNNEL_SCRIPT_PATH
+chmod +x $UPDATE_SCRIPT_PATH
 
 # Execute the tunnel script
 echo "Executing the tunnel script..."
-sudo ./tunnel.sh
-
-# Check if the execution was successful
-if [ $? -ne 0 ]; then
-    echo "Failed to execute the tunnel script. Exiting."
-    exit 1
-fi
-
-echo "Tunnel script executed successfully."
+sudo $TUNNEL_SCRIPT_PATH
