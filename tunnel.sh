@@ -44,36 +44,40 @@ configure_haproxy() {
     echo "   default-server inter 15s" >> $config_file
     echo "" >> $config_file
 
-    # Define the IP addresses for backends
+    # Read number of servers
+    echo "Enter the number of servers you want to configure:"
+    read num_servers
+
+    # Define backend IPs (Assuming IPs are fixed)
     declare -A backend_ips=(
         [2]="[2002:fb8:222::2]"
         [5]="[2002:fb8:225::2]"
     )
 
-    # Ask which tunnels to configure
-    echo "Enter the tunnel numbers you want to configure (space-separated, e.g., 2 5):"
-    read tunnels
+    # Configure each server
+    for i in $(seq 1 $num_servers); do
+        echo "Enter the tunnel number for server $i (e.g., 2 or 5):"
+        read tunnel_number
 
-    # Add configurations for selected tunnels
-    for tunnel in $tunnels; do
-        if [[ -n "${backend_ips[$tunnel]}" ]]; then
-            echo "frontend xray${tunnel}-frontend" >> $config_file
-            echo "   bind *:1030" >> $config_file
-            echo "   bind *:56855" >> $config_file
-            echo "   bind *:27028" >> $config_file
-            echo "   bind *:32942" >> $config_file
-            echo "   bind *:39464" >> $config_file
-            echo "   bind *:47903" >> $config_file
-            echo "   bind *:31" >> $config_file
+        if [[ -n "${backend_ips[$tunnel_number]}" ]]; then
+            echo "Enter the ports for tunnel $tunnel_number (space-separated):"
+            read ports
+
+            # Add frontend configuration
+            echo "frontend xray${tunnel_number}-frontend" >> $config_file
+            for port in $ports; do
+                echo "   bind *:$port" >> $config_file
+            done
             echo "   log global" >> $config_file
-            echo "   use_backend xray${tunnel}-backend-servers" >> $config_file
+            echo "   use_backend xray${tunnel_number}-backend-servers" >> $config_file
             echo "" >> $config_file
 
-            echo "backend xray${tunnel}-backend-servers" >> $config_file
-            echo "   server gate${tunnel} ${backend_ips[$tunnel]}" >> $config_file
+            # Add backend configuration
+            echo "backend xray${tunnel_number}-backend-servers" >> $config_file
+            echo "   server gate${tunnel_number} ${backend_ips[$tunnel_number]}" >> $config_file
             echo "" >> $config_file
         else
-            echo "Invalid tunnel number: $tunnel"
+            echo "Invalid tunnel number: $tunnel_number. Skipping..."
         fi
     done
 
@@ -140,7 +144,7 @@ while true; do
                 clear
                 echo "Select an option for HAProxy:"
                 echo "1 - Install"
-                echo "2 - Forward Ports"
+                echo "2 - Configure HAProxy"
                 echo "3 - Start HAProxy"
                 echo "4 - Stop HAProxy"
                 echo "5 - Back to Main Menu"
