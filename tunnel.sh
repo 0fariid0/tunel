@@ -99,24 +99,46 @@ EOL
 while true; do
     clear
     echo "Select an option:"
-    echo "1 - Server Iran (IR)"
-    echo "2 - Server Kharej (KH)"
-    echo "3 - Delete Tunnel"
-    echo "4 - Ping Forever"
-    echo "Enter your choice [1-4]: "
-    read option
+    echo "1 - Tunnel"
+    echo "2 - Ping Forever"
+    echo "Enter your choice [1-2]: "
+    read main_option
 
-    case $option in
+    case $main_option in
         1)
-            handle_ir
+            while true; do
+                clear
+                echo "Tunnel Options:"
+                echo "1 - Server Iran (IR)"
+                echo "2 - Server Kharej (KH)"
+                echo "3 - Delete Tunnel"
+                echo "4 - Exit"
+                echo "Enter your choice [1-4]: "
+                read tunnel_option
+
+                case $tunnel_option in
+                    1)
+                        handle_ir
+                        ;;
+                    2)
+                        handle_kh
+                        ;;
+                    3)
+                        handle_delete_tunnel
+                        ;;
+                    4)
+                        echo "Exiting Tunnel menu."
+                        break
+                        ;;
+                    *)
+                        echo "Invalid option. Please try again."
+                        ;;
+                esac
+                echo "Press any key to return to the main menu..."
+                read -n 1
+            done
             ;;
         2)
-            handle_kh
-            ;;
-        3)
-            handle_delete_tunnel
-            ;;
-        4)
             ping_forever_menu
             ;;
         *)
