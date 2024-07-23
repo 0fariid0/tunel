@@ -45,14 +45,28 @@ configure_haproxy() {
     echo "" >> $config_file
 
     # Read tunnel numbers
-    echo "Enter the tunnel numbers you want to configure (space-separated, e.g., 1 2 3):"
-    read tunnel_numbers
+    while true; do
+        echo "Enter the tunnel numbers you want to configure (space-separated, e.g., 1 2 3):"
+        read -r tunnel_numbers
+        if [ -n "$tunnel_numbers" ]; then
+            break
+        else
+            echo "Tunnel numbers cannot be empty. Please try again."
+        fi
+    done
 
     # Configure each tunnel
     for tunnel_number in $tunnel_numbers; do
         if [[ $tunnel_number -ge 1 && $tunnel_number -le 9 ]]; then
-            echo "Enter the ports for tunnel $tunnel_number (space-separated):"
-            read ports
+            while true; do
+                echo "Enter the ports for tunnel $tunnel_number (space-separated):"
+                read -r ports
+                if [ -n "$ports" ]; then
+                    break
+                else
+                    echo "Ports cannot be empty. Please try again."
+                fi
+            done
 
             # Add frontend configuration
             echo "frontend tunnel${tunnel_number}-frontend" >> $config_file
@@ -102,17 +116,24 @@ display_tunnel_menu() {
 
 # Function to handle the deletion of the tunnel
 delete_tunnel() {
-    read -p "Enter the tunnel number to delete: " TUNNEL_NUMBER
-    FILE_PATH="/etc/netplan/tunnel${TUNNEL_NUMBER}.yaml"
+    while true; do
+        read -p "Enter the tunnel number to delete: " TUNNEL_NUMBER
+        FILE_PATH="/etc/netplan/tunnel${TUNNEL_NUMBER}.yaml"
 
-    if [ -f "$FILE_PATH" ]; then
-        echo "Deleting the file ${FILE_PATH}..."
-        sudo rm "$FILE_PATH"
-        sudo netplan apply
-        echo "Tunnel ${TUNNEL_NUMBER} deleted."
-    else
-        echo "File ${FILE_PATH} does not exist."
-    fi
+        if [ -n "$TUNNEL_NUMBER" ]; then
+            if [ -f "$FILE_PATH" ]; then
+                echo "Deleting the file ${FILE_PATH}..."
+                sudo rm "$FILE_PATH"
+                sudo netplan apply
+                echo "Tunnel ${TUNNEL_NUMBER} deleted."
+                break
+            else
+                echo "File ${FILE_PATH} does not exist. Please try again."
+            fi
+        else
+            echo "Tunnel number cannot be empty. Please try again."
+        fi
+    done
 
     # Ask the user if they want to reboot the server
     while true; do
@@ -137,11 +158,33 @@ delete_tunnel() {
 
 # Function to handle the creation or updating of a tunnel
 create_or_update_tunnel() {
-    read -p "Enter the tunnel number: " TUNNEL_NUMBER
-    FILE_PATH="/etc/netplan/tunnel${TUNNEL_NUMBER}.yaml"
+    while true; do
+        read -p "Enter the tunnel number: " TUNNEL_NUMBER
+        if [ -n "$TUNNEL_NUMBER" ]; then
+            FILE_PATH="/etc/netplan/tunnel${TUNNEL_NUMBER}.yaml"
+            break
+        else
+            echo "Tunnel number cannot be empty. Please try again."
+        fi
+    done
 
-    read -p "Enter the local IP address: " LOCAL_IP
-    read -p "Enter the remote IP address: " REMOTE_IP
+    while true; do
+        read -p "Enter the local IP address: " LOCAL_IP
+        if [ -n "$LOCAL_IP" ]; then
+            break
+        else
+            echo "Local IP address cannot be empty. Please try again."
+        fi
+    done
+
+    while true; do
+        read -p "Enter the remote IP address: " REMOTE_IP
+        if [ -n "$REMOTE_IP" ]; then
+            break
+        else
+            echo "Remote IP address cannot be empty. Please try again."
+        fi
+    done
 
     # Define the address based on the server type
     if [ "$SERVER_TYPE" == "ir" ]; then
@@ -199,14 +242,14 @@ while true; do
     echo "1 - Tunnel Management"
     echo "2 - HAProxy Management"
     echo "3 - Exit"
-    read main_option
+    read -r main_option
 
     case $main_option in
         1)
             while true; do
                 clear
                 display_tunnel_menu
-                read -p "Enter your choice [1-5]: " tunnel_option
+                read -r tunnel_option
 
                 case $tunnel_option in
                     1)
@@ -228,55 +271,3 @@ while true; do
                         break
                         ;;
                     *)
-                        echo "Invalid option. Please try again."
-                        ;;
-                esac
-                echo "Press any key to continue..."
-                read -n 1
-            done
-            ;;
-        2)
-            while true; do
-                clear
-                echo "Select an option for HAProxy:"
-                echo "1 - Install"
-                echo "2 - Configure HAProxy"
-                echo "3 - Start HAProxy"
-                echo "4 - Stop HAProxy"
-                echo "5 - Back to Main Menu"
-                read haproxy_option
-
-                case $haproxy_option in
-                    1)
-                        install_haproxy
-                        ;;
-                    2)
-                        configure_haproxy
-                        ;;
-                    3)
-                        start_haproxy
-                        ;;
-                    4)
-                        stop_haproxy
-                        ;;
-                    5)
-                        echo "Returning to main menu..."
-                        break
-                        ;;
-                    *)
-                        echo "Invalid option. Please try again."
-                        ;;
-                esac
-                echo "Press any key to continue..."
-                read -n 1
-            done
-            ;;
-        3)
-            echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo "Invalid option. Please try again."
-            ;;
-    esac
-done
