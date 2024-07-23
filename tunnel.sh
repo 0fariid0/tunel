@@ -3,55 +3,45 @@
 # Function to clean up previous versions of the script
 cleanup_previous_versions() {
     echo "Cleaning up previous versions of the script..."
-    if [ -f "/usr/local/bin/old_script.sh" ]; then
-        sudo rm /usr/local/bin/old_script.sh
-        echo "Old script removed."
-    fi
+    sudo rm -f /usr/local/bin/tunnel.sh
+    echo "Old script removed."
 }
 
 # Function to handle Server Iran (IR)
 handle_ir() {
-    echo "You selected Server Iran (IR)"
-    # Add your logic for Server Iran (IR) here
-    echo "Server Iran (IR) logic not implemented."
+    echo "Handling Server Iran (IR)..."
+    # Your IR-specific logic here
 }
 
 # Function to handle Server Kharej (KH)
 handle_kh() {
-    echo "You selected Server Kharej (KH)"
-    # Add your logic for Server Kharej (KH) here
-    echo "Server Kharej (KH) logic not implemented."
+    echo "Handling Server Kharej (KH)..."
+    # Your KH-specific logic here
 }
 
 # Function to handle Delete Tunnel
 handle_delete_tunnel() {
-    echo "You selected Delete Tunnel"
-    echo "Enter the tunnel number to delete (e.g., 1, 2, 3, ...):"
-    read tunnel_number
-    if [ -f "/etc/netplan/tunnel$tunnel_number.yaml" ]; then
-        sudo rm "/etc/netplan/tunnel$tunnel_number.yaml"
-        echo "Tunnel $tunnel_number deleted."
-        echo "Do you want to reboot the server now? (y/n): "
-        read reboot_choice
-        if [[ $reboot_choice == "y" ]]; then
-            sudo reboot
-        else
-            sudo netplan apply
-        fi
+    echo "Handling Delete Tunnel..."
+    # Your delete tunnel logic here
+    echo "Do you want to reboot the server now? (y/n): "
+    read reboot_choice
+    if [[ $reboot_choice == "y" ]]; then
+        sudo reboot
     else
-        echo "Tunnel $tunnel_number does not exist."
+        sudo netplan apply
     fi
 }
 
-# Function to handle Ping Forever for Server Kharej (KH)
+# Function to handle Ping Forever for Server Kharej
 ping_forever_kh() {
+    echo "Handling Ping Forever..."
     while true; do
         clear
         echo "Ping Forever Options:"
         echo "1 - Install"
         echo "2 - Restart"
         echo "3 - Status"
-        echo "4 - Exit to Main Menu"
+        echo "4 - Exit"
         echo "Enter your choice [1-4]: "
         read sub_option
 
@@ -113,7 +103,7 @@ EOL
     done
 }
 
-# Main Loop
+# Main Menu
 cleanup_previous_versions
 
 while true; do
