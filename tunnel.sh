@@ -1,108 +1,50 @@
 #!/bin/bash
 
-# Function to display the main menu
-display_menu() {
+while true; do
+    clear
     echo "Select an option:"
     echo "1 - Server Iran (IR)"
     echo "2 - Server Kharej (KH)"
     echo "3 - Delete Tunnel"
     echo "4 - Ping Forever"
-    echo "5 - Exit"
-}
+    echo "Enter your choice [1-4]: "
+    read option
 
-# Function to handle the creation or updating of a tunnel
-create_or_update_tunnel() {
-    read -p "Enter the tunnel number: " TUNNEL_NUMBER
-    FILE_PATH="/etc/netplan/tunnel${TUNNEL_NUMBER}.yaml"
-
-    read -p "Enter the local IP address: " LOCAL_IP
-    read -p "Enter the remote IP address: " REMOTE_IP
-
-    if [ "$SERVER_TYPE" == "ir" ]; then
-        ADDRESS="2002:fb8:22${TUNNEL_NUMBER}::1/64"
-    else
-        ADDRESS="2002:fb8:22${TUNNEL_NUMBER}::2/64"
-    fi
-
-    NEW_CONTENT="network:
-version: 2
-tunnels:
-  tunnel${TUNNEL_NUMBER}:
-    mode: sit
-    local: ${LOCAL_IP}
-    remote: ${REMOTE_IP}
-    addresses:
-      - ${ADDRESS}"
-
-    if [ -f "$FILE_PATH" ]; then
-        echo "Backing up the existing file to ${FILE_PATH}.bak"
-        sudo cp "$FILE_PATH" "${FILE_PATH}.bak"
-    fi
-
-    echo "$NEW_CONTENT" | sudo tee "$FILE_PATH" > /dev/null
-    sudo netplan apply
-
-    # Ask the user if they want to reboot the server
-    while true; do
-        read -p "Do you want to reboot the server now? (y/n): " REBOOT_ANSWER
-        case $REBOOT_ANSWER in
-            [Yy]* )
-                echo "Rebooting the server..."
+    case $option in
+        1)
+            echo "You selected Server Iran (IR)"
+            # Insert the script logic for Server Iran (IR) here
+            ;;
+        2)
+            echo "You selected Server Kharej (KH)"
+            # Insert the script logic for Server Kharej (KH) here
+            ;;
+        3)
+            echo "You selected Delete Tunnel"
+            # Insert the script logic for Delete Tunnel here
+            echo "Do you want to reboot the server now? (y/n): "
+            read reboot_choice
+            if [[ $reboot_choice == "y" ]]; then
                 sudo reboot
-                exit 0
-                ;;
-            [Nn]* )
-                echo "Server will not be rebooted. Applying netplan configuration again..."
+            else
                 sudo netplan apply
-                return_to_menu
-                ;;
-            * )
-                echo "Please answer y or n."
-                ;;
-        esac
-    done
-}
+            fi
+            ;;
+        4)
+            while true; do
+                clear
+                echo "Ping Forever Options:"
+                echo "1 - Install"
+                echo "2 - Restart"
+                echo "3 - Status"
+                echo "4 - Exit"
+                echo "Enter your choice [1-4]: "
+                read sub_option
 
-# Function to handle the deletion of the tunnel
-delete_tunnel() {
-    read -p "Enter the tunnel number to delete: " TUNNEL_NUMBER
-    FILE_PATH="/etc/netplan/tunnel${TUNNEL_NUMBER}.yaml"
-
-    if [ -f "$FILE_PATH" ]; then
-        echo "Deleting the file ${FILE_PATH}..."
-        sudo rm "$FILE_PATH"
-        sudo netplan apply
-    else
-        echo "File ${FILE_PATH} does not exist."
-    fi
-
-    # Ask the user if they want to reboot the server
-    while true; do
-        read -p "Do you want to reboot the server now? (y/n): " REBOOT_ANSWER
-        case $REBOOT_ANSWER in
-            [Yy]* )
-                echo "Rebooting the server..."
-                sudo reboot
-                exit 0
-                ;;
-            [Nn]* )
-                echo "Server will not be rebooted. Applying netplan configuration again..."
-                sudo netplan apply
-                return_to_menu
-                ;;
-            * )
-                echo "Please answer y or n."
-                ;;
-        esac
-    done
-}
-
-# Function to install the ping forever service
-install_ping_forever() {
-    echo "Installing the ping forever service..."
-
-    # Create the ping_forever.sh script
-    sudo bash -c 'cat > /usr/local/bin/ping_forever.sh <<EOF
+                case $sub_option in
+                    1)
+                        echo "Installing Ping Forever..."
+                        sudo tee /usr/local/bin/ping_forever.sh > /dev/null <<EOL
 #!/bin/bash
 
 # Infinite loop to ping the given IPv6 addresses
@@ -115,13 +57,9 @@ do
     ping6 2002:fb8:225::1 &
     wait
 done
-EOF'
-
-    # Make the script executable
-    sudo chmod +x /usr/local/bin/ping_forever.sh
-
-    # Create the systemd service file
-    sudo bash -c 'cat > /etc/systemd/system/ping_forever.service <<EOF
+EOL
+                        sudo chmod +x /usr/local/bin/ping_forever.sh
+                        sudo tee /etc/systemd/system/ping_forever.service > /dev/null <<EOL
 [Unit]
 Description=Ping Forever Service
 After=network.target
@@ -133,91 +71,35 @@ User=root
 
 [Install]
 WantedBy=multi-user.target
-EOF'
-
-    # Reload systemd, enable, and start the service
-    sudo systemctl daemon-reload
-    sudo systemctl enable ping_forever.service
-    sudo systemctl start ping_forever.service
-
-    echo "Ping forever service installed and started."
-}
-
-# Function to restart the ping forever service
-restart_ping_forever() {
-    echo "Restarting the ping forever service..."
-    sudo systemctl restart ping_forever.service
-}
-
-# Function to check the status of the ping forever service
-status_ping_forever() {
-    echo "Checking the status of the ping forever service..."
-    sudo systemctl status ping_forever.service
-}
-
-# Function to handle the ping options menu
-ping_forever_menu() {
-    while true; do
-        echo "Ping Forever Options:"
-        echo "1 - Install"
-        echo "2 - Restart"
-        echo "3 - Status"
-        read -p "Enter your choice [1-3]: " PING_CHOICE
-
-        case $PING_CHOICE in
-            1)
-                install_ping_forever
-                ;;
-            2)
-                restart_ping_forever
-                ;;
-            3)
-                status_ping_forever
-                ;;
-            *)
-                echo "Invalid choice. Please select 1, 2, or 3."
-                ;;
-        esac
-
-        # Ask if the user wants to return to the main menu
-        read -p "Do you want to return to the main menu? (y/n): " RETURN_TO_MENU
-        if [[ "$RETURN_TO_MENU" == [Nn]* ]]; then
-            exit 0
-        fi
-    done
-}
-
-# Function to return to the main menu
-return_to_menu() {
-    echo "Returning to the main menu..."
-    sleep 1
-}
-
-# Main script logic
-while true; do
-    display_menu
-    read -p "Enter your choice [1-5]: " CHOICE
-
-    case $CHOICE in
-        1)
-            SERVER_TYPE="ir"
-            create_or_update_tunnel
-            ;;
-        2)
-            SERVER_TYPE="kh"
-            create_or_update_tunnel
-            ;;
-        3)
-            delete_tunnel
-            ;;
-        4)
-            ping_forever_menu
-            ;;
-        5)
-            exit 0
+EOL
+                        sudo systemctl daemon-reload
+                        sudo systemctl enable ping_forever.service
+                        sudo systemctl start ping_forever.service
+                        echo "Ping Forever service installed and started."
+                        ;;
+                    2)
+                        echo "Restarting Ping Forever service..."
+                        sudo systemctl restart ping_forever.service
+                        echo "Ping Forever service restarted."
+                        ;;
+                    3)
+                        echo "Checking Ping Forever service status..."
+                        sudo systemctl status ping_forever.service
+                        ;;
+                    4)
+                        echo "Exiting Ping Forever menu."
+                        break
+                        ;;
+                    *)
+                        echo "Invalid option. Please try again."
+                        ;;
+                esac
+                echo "Press any key to return to the main menu..."
+                read -n 1
+            done
             ;;
         *)
-            echo "Invalid choice. Please select 1, 2, 3, 4, or 5."
+            echo "Invalid option. Please try again."
             ;;
     esac
 done
