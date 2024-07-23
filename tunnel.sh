@@ -76,17 +76,26 @@ configure_haproxy() {
     restart_haproxy
 }
 
-# Function to install and configure netplan
-setup_netplan() {
-    echo "Installing and configuring netplan..."
-    sudo apt install netplan.io -y
-    sudo systemctl unmask systemd-networkd.service
-    sudo systemctl restart networking
-    sudo netplan apply
-    sudo systemctl restart networking
-    sudo netplan apply
-    sudo systemctl restart networking
-    sudo netplan apply
+# Function to install and configure netplan if not done before
+setup_netplan_once() {
+    CONFIG_FLAG="/etc/netplan/netplan_configured"
+
+    if [ ! -f "$CONFIG_FLAG" ]; then
+        echo "Installing and configuring netplan..."
+        sudo apt install netplan.io -y
+        sudo systemctl unmask systemd-networkd.service
+        sudo systemctl restart networking
+        sudo netplan apply
+        sudo systemctl restart networking
+        sudo netplan apply
+        sudo systemctl restart networking
+        sudo netplan apply
+
+        # Create the flag file to indicate configuration has been done
+        sudo touch "$CONFIG_FLAG"
+    else
+        echo "Netplan is already configured."
+    fi
 }
 
 # Function to display the tunnel menu
@@ -201,7 +210,7 @@ while true; do
 
     case $main_option in
         1)
-            setup_netplan
+            setup_netplan_once
             while true; do
                 clear
                 display_tunnel_menu
@@ -269,10 +278,4 @@ while true; do
             ;;
         3)
             echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo "Invalid option. Please try again."
-            ;;
-    esac
-done
+            exit
