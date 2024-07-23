@@ -1,213 +1,170 @@
 #!/bin/bash
 
-# Main menu
-main_menu() {
-    clear
-    echo "Select an option:"
-    echo "1 - Tunnel"
-    echo "2 - Ping Forever"
-    echo "3 - Exit"
-    echo "Enter your choice [1-3]: "
-    read main_option
-
-    case $main_option in
-        1)
-            tunnel_menu
-            ;;
-        2)
-            ping_forever_menu
-            ;;
-        3)
-            echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo "Invalid option. Please try again."
-            sleep 2
-            main_menu
-            ;;
-    esac
+# Helper function to restart haproxy
+restart_haproxy() {
+    echo "Restarting HAProxy..."
+    sudo systemctl restart haproxy
 }
 
-# Tunnel menu
-tunnel_menu() {
-    clear
-    echo "Select an option:"
-    echo "1 - Server Iran (IR)"
-    echo "2 - Server Kharej (KH)"
-    echo "3 - Delete Tunnel"
-    echo "4 - Return to Main Menu"
-    echo "Enter your choice [1-4]: "
-    read tunnel_option
-
-    case $tunnel_option in
-        1)
-            setup_tunnel "ir"
-            ;;
-        2)
-            setup_tunnel "kh"
-            ;;
-        3)
-            delete_tunnel
-            ;;
-        4)
-            main_menu
-            ;;
-        *)
-            echo "Invalid option. Please try again."
-            sleep 2
-            tunnel_menu
-            ;;
-    esac
+# Helper function to start haproxy
+start_haproxy() {
+    echo "Starting HAProxy..."
+    sudo systemctl start haproxy
 }
 
-# Ping Forever menu
-ping_forever_menu() {
-    clear
-    echo "Ping Forever Options:"
-    echo "1 - Install"
-    echo "2 - Restart"
-    echo "3 - Status"
-    echo "4 - Return to Main Menu"
-    echo "Enter your choice [1-4]: "
-    read ping_option
-
-    case $ping_option in
-        1)
-            install_ping_forever
-            ;;
-        2)
-            restart_ping_forever
-            ;;
-        3)
-            status_ping_forever
-            ;;
-        4)
-            main_menu
-            ;;
-        *)
-            echo "Invalid option. Please try again."
-            sleep 2
-            ping_forever_menu
-            ;;
-    esac
+# Helper function to stop haproxy
+stop_haproxy() {
+    echo "Stopping HAProxy..."
+    sudo systemctl stop haproxy
 }
 
-# Function to setup tunnel configuration
-setup_tunnel() {
-    local server_type=$1
-    echo "Configuring Tunnel for $server_type..."
-
-    echo "Enter the tunnel number: "
-    read tunnel_number
-    echo "Enter the local IP address: "
-    read local_ip
-    echo "Enter the remote IP address: "
-    read remote_ip
-
-    file_path="/etc/netplan/tunnel${tunnel_number}.yaml"
-
-    if [[ $server_type == "ir" ]]; then
-        addresses="2002:fb8:22${tunnel_number}::1/64"
-    else
-        addresses="2002:fb8:22${tunnel_number}::2/64"
-    fi
-
-    sudo tee $file_path > /dev/null <<EOL
-network:
-  version: 2
-  tunnels:
-    tunnel${tunnel_number}:
-      mode: sit
-      local: ${local_ip}
-      remote: ${remote_ip}
-      addresses:
-        - ${addresses}
-EOL
-
-    echo "Tunnel configured successfully. Apply changes with netplan."
-    echo "Do you want to reboot the server now? (y/n): "
-    read reboot_choice
-    if [[ $reboot_choice == "y" ]]; then
-        sudo reboot
-    else
-        sudo netplan apply
-    fi
+# Helper function to install haproxy
+install_haproxy() {
+    echo "Installing HAProxy..."
+    sudo apt update -y
+    sudo apt install haproxy -y
 }
 
-# Function to delete tunnel configuration
-delete_tunnel() {
-    echo "Enter the tunnel number to delete: "
-    read tunnel_number
-    file_path="/etc/netplan/tunnel${tunnel_number}.yaml"
+# Helper function to configure haproxy
+configure_haproxy() {
+    echo "Configuring HAProxy..."
 
-    if [[ -f $file_path ]]; then
-        sudo rm $file_path
-        echo "Tunnel configuration removed successfully."
-        echo "Do you want to reboot the server now? (y/n): "
-        read reboot_choice
-        if [[ $reboot_choice == "y" ]]; then
-            sudo reboot
-        else
-            sudo netplan apply
-        fi
-    else
-        echo "Tunnel file not found."
-    fi
+    # Read number of servers
+    echo "Enter the number of servers:"
+    read num_servers
+
+    # Initialize configuration file
+    config_file="/etc/haproxy/haproxy.cfg"
+    echo "global" > $config_file
+    echo "   log \"stdout\" format rfc5424 daemon  notice" >> $config_file
+    echo "" >> $config_file
+    echo "defaults" >> $config_file
+    echo "   mode tcp" >> $config_file
+    echo "   log global" >> $config_file
+    echo "   balance leastconn" >> $config_file
+    echo "   timeout connect 5s" >> $config_file
+    echo "   timeout server 30s" >> $config_file
+    echo "   timeout client 30s" >> $config_file
+    echo "   default-server inter 15s" >> $config_file
+    echo "" >> $config_file
+
+    # Read frontends and ports
+    for i in $(seq 1 $num_servers); do
+        echo "Enter ports for server $i (space-separated):"
+        read ports
+
+        # Add frontend configuration
+        echo "frontend server${i}-frontend" >> $config_file
+        for port in $ports; do
+            echo "   bind *:$port" >> $config_file
+        done
+        echo "   log global" >> $config_file
+        echo "   use_backend server${i}-backend-servers" >> $config_file
+        echo "" >> $config_file
+
+        # Add backend configuration
+        echo "backend server${i}-backend-servers" >> $config_file
+        echo "   server server${i} [2002:fb8:2${i}1::2]" >> $config_file
+        echo "" >> $config_file
+    done
+
+    # Restart haproxy to apply changes
+    restart_haproxy
 }
 
-# Function to install Ping Forever service
-install_ping_forever() {
-    echo "Installing Ping Forever service..."
-    sudo tee /usr/local/bin/ping_forever.sh > /dev/null <<EOL
-#!/bin/bash
+echo "Select an option:"
+echo "1 - Tunnel"
+echo "2 - HAProxy"
+echo "3 - Exit"
+echo "Enter your choice [1-3]: "
+read main_option
 
-# Infinite loop to ping the given IPv6 addresses
-while true
-do
-    ping6 2002:fb8:221::1 &
-    ping6 2002:fb8:222::1 &
-    ping6 2002:fb8:223::1 &
-    ping6 2002:fb8:224::1 &
-    ping6 2002:fb8:225::1 &
-    wait
-done
-EOL
+case $main_option in
+    1)
+        while true; do
+            clear
+            echo "Select an option:"
+            echo "1 - Server Iran (IR)"
+            echo "2 - Server Kharej (KH)"
+            echo "3 - Delete Tunnel"
+            echo "4 - Back to Main Menu"
+            echo "Enter your choice [1-4]: "
+            read tunnel_option
 
-    sudo chmod +x /usr/local/bin/ping_forever.sh
+            case $tunnel_option in
+                1)
+                    echo "You selected Server Iran (IR)"
+                    # Insert the script logic for Server Iran (IR) here
+                    ;;
+                2)
+                    echo "You selected Server Kharej (KH)"
+                    # Insert the script logic for Server Kharej (KH) here
+                    ;;
+                3)
+                    echo "You selected Delete Tunnel"
+                    # Insert the script logic for Delete Tunnel here
+                    echo "Do you want to reboot the server now? (y/n): "
+                    read reboot_choice
+                    if [[ $reboot_choice == "y" ]]; then
+                        sudo reboot
+                    else
+                        sudo netplan apply
+                    fi
+                    ;;
+                4)
+                    echo "Returning to main menu..."
+                    break
+                    ;;
+                *)
+                    echo "Invalid option. Please try again."
+                    ;;
+            esac
+            echo "Press any key to continue..."
+            read -n 1
+        done
+        ;;
+    2)
+        while true; do
+            clear
+            echo "Select an option for HAProxy:"
+            echo "1 - Install"
+            echo "2 - Forward Ports"
+            echo "3 - Start HAProxy"
+            echo "4 - Stop HAProxy"
+            echo "5 - Back to Main Menu"
+            echo "Enter your choice [1-5]: "
+            read haproxy_option
 
-    sudo tee /etc/systemd/system/ping_forever.service > /dev/null <<EOL
-[Unit]
-Description=Ping Forever Service
-After=network.target
-
-[Service]
-ExecStart=/usr/local/bin/ping_forever.sh
-Restart=always
-User=root
-
-[Install]
-WantedBy=multi-user.target
-EOL
-
-    sudo systemctl daemon-reload
-    sudo systemctl enable ping_forever.service
-    sudo systemctl start ping_forever.service
-    echo "Ping Forever service installed and started."
-}
-
-# Function to restart Ping Forever service
-restart_ping_forever() {
-    echo "Restarting Ping Forever service..."
-    sudo systemctl restart ping_forever.service
-    echo "Ping Forever service restarted."
-}
-
-# Function to check Ping Forever service status
-status_ping_forever() {
-    echo "Checking Ping Forever service status..."
-    sudo systemctl status ping_forever.service
-}
-
-# Start the main menu
-main_menu
+            case $haproxy_option in
+                1)
+                    install_haproxy
+                    ;;
+                2)
+                    configure_haproxy
+                    ;;
+                3)
+                    start_haproxy
+                    ;;
+                4)
+                    stop_haproxy
+                    ;;
+                5)
+                    echo "Returning to main menu..."
+                    break
+                    ;;
+                *)
+                    echo "Invalid option. Please try again."
+                    ;;
+            esac
+            echo "Press any key to continue..."
+            read -n 1
+        done
+        ;;
+    3)
+        echo "Exiting..."
+        exit 0
+        ;;
+    *)
+        echo "Invalid option. Please try again."
+        ;;
+esac
