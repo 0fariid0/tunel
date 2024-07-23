@@ -44,40 +44,31 @@ configure_haproxy() {
     echo "   default-server inter 15s" >> $config_file
     echo "" >> $config_file
 
-    # Read number of servers
-    echo "Enter the number of servers you want to configure:"
-    read num_servers
+    # Read tunnel numbers
+    echo "Enter the tunnel numbers you want to configure (space-separated, e.g., 1 2 3):"
+    read tunnel_numbers
 
-    # Define backend IPs (Assuming IPs are fixed)
-    declare -A backend_ips=(
-        [2]="[2002:fb8:222::2]"
-        [5]="[2002:fb8:225::2]"
-    )
-
-    # Configure each server
-    for i in $(seq 1 $num_servers); do
-        echo "Enter the tunnel number for server $i (e.g., 2 or 5):"
-        read tunnel_number
-
-        if [[ -n "${backend_ips[$tunnel_number]}" ]]; then
+    # Configure each tunnel
+    for tunnel_number in $tunnel_numbers; do
+        if [[ $tunnel_number -ge 1 && $tunnel_number -le 9 ]]; then
             echo "Enter the ports for tunnel $tunnel_number (space-separated):"
             read ports
 
             # Add frontend configuration
-            echo "frontend xray${tunnel_number}-frontend" >> $config_file
+            echo "frontend tunnel${tunnel_number}-frontend" >> $config_file
             for port in $ports; do
                 echo "   bind *:$port" >> $config_file
             done
             echo "   log global" >> $config_file
-            echo "   use_backend xray${tunnel_number}-backend-servers" >> $config_file
+            echo "   use_backend tunnel${tunnel_number}-backend-servers" >> $config_file
             echo "" >> $config_file
 
             # Add backend configuration
-            echo "backend xray${tunnel_number}-backend-servers" >> $config_file
-            echo "   server gate${tunnel_number} ${backend_ips[$tunnel_number]}" >> $config_file
+            echo "backend tunnel${tunnel_number}-backend-servers" >> $config_file
+            echo "   server tunnel${tunnel_number} [2002:fb8:22${tunnel_number}::2]" >> $config_file
             echo "" >> $config_file
         else
-            echo "Invalid tunnel number: $tunnel_number. Skipping..."
+            echo "Invalid tunnel number: $tunnel_number. Valid range is 1-9. Skipping..."
         fi
     done
 
