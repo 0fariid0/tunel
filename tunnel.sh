@@ -155,7 +155,6 @@ delete_tunnel() {
         esac
     done
 }
-
 # Function to handle the creation or updating of a tunnel
 create_or_update_tunnel() {
     while true; do
@@ -267,7 +266,57 @@ while true; do
                         delete_tunnel
                         ;;
                     5)
-                        echo "Returning to main menu..."
-                        break
+                        break  # Back to the main menu
                         ;;
                     *)
+                        echo "Invalid option. Please try again."
+                        ;;
+                esac
+            done
+            ;;
+        2)
+            while true; do
+                clear
+                echo "HAProxy Management Menu:"
+                echo "1 - Install HAProxy"
+                echo "2 - Start HAProxy"
+                echo "3 - Stop HAProxy"
+                echo "4 - Restart HAProxy"
+                echo "5 - Configure HAProxy"
+                echo "6 - Back to Main Menu"
+                read -r haproxy_option
+
+                case $haproxy_option in
+                    1)
+                        install_haproxy
+                        ;;
+                    2)
+                        start_haproxy
+                        ;;
+                    3)
+                        stop_haproxy
+                        ;;
+                    4)
+                        restart_haproxy
+                        ;;
+                    5)
+                        configure_haproxy
+                        ;;
+                    6)
+                        break  # Back to the main menu
+                        ;;
+                    *)
+                        echo "Invalid option. Please try again."
+                        ;;
+                esac
+            done
+            ;;
+        3)
+            echo "Exiting..."
+            exit 0
+            ;;
+        *)
+            echo "Invalid option. Please try again."
+            ;;
+    esac
+done
