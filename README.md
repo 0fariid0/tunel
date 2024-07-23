@@ -1,1 +1,1 @@
-https://raw.githubusercontent.com/0fariid0/tunel/main/tunel.sh
+https://raw.githubusercontent.com/0fariid0/tunel/main/tunnel.sh
