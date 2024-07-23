@@ -93,7 +93,7 @@ install_netplan() {
 # Function to display the tunnel menu
 display_tunnel_menu() {
     echo "Select an option:"
-    echo "1 - Install Netplan"
+    echo "1 - Install Tunnel"  # Option to install Netplan
     echo "2 - Server Iran (IR)"
     echo "3 - Server Kharej (KH)"
     echo "4 - Delete Tunnel"
