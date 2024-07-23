@@ -6,9 +6,7 @@ This script allows you to manage Netplan tunnels and configure a ping service.
 
 ## Usage
 
-### Download and Execute Setup Script
-
 To download and execute the setup script, run the following command:
 
 ```bash
-sudo setup_tunnel.sh
+wget https://raw.githubusercontent.com/0fariid0/tunel/main/setup_tunnel.sh -O setup_tunnel.sh && chmod +x setup_tunnel.sh && sudo ./setup_tunnel.sh
