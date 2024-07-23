@@ -3,38 +3,46 @@
 # Function to handle Server Iran (IR)
 handle_ir() {
     echo "You selected Server Iran (IR)"
-    # Insert the script logic for Server Iran (IR) here
+    # Add your logic for Server Iran (IR) here
+    echo "Server Iran (IR) logic not implemented."
 }
 
 # Function to handle Server Kharej (KH)
 handle_kh() {
     echo "You selected Server Kharej (KH)"
-    # Insert the script logic for Server Kharej (KH) here
+    # Add your logic for Server Kharej (KH) here
+    echo "Server Kharej (KH) logic not implemented."
 }
 
 # Function to handle Delete Tunnel
 handle_delete_tunnel() {
     echo "You selected Delete Tunnel"
-    # Insert the script logic for Delete Tunnel here
-    echo "Do you want to reboot the server now? (y/n): "
-    read reboot_choice
-    if [[ $reboot_choice == "y" ]]; then
-        sudo reboot
+    echo "Enter the tunnel number to delete (e.g., 1, 2, 3, ...):"
+    read tunnel_number
+    if [ -f "/etc/netplan/tunnel$tunnel_number.yaml" ]; then
+        sudo rm "/etc/netplan/tunnel$tunnel_number.yaml"
+        echo "Tunnel $tunnel_number deleted."
+        echo "Do you want to reboot the server now? (y/n): "
+        read reboot_choice
+        if [[ $reboot_choice == "y" ]]; then
+            sudo reboot
+        else
+            sudo netplan apply
+        fi
     else
-        sudo netplan apply
+        echo "Tunnel $tunnel_number does not exist."
     fi
 }
 
 # Function to handle Ping Forever for Server Kharej (KH)
 ping_forever_kh() {
-    echo "You selected Ping Forever for Server Kharej (KH)"
     while true; do
         clear
         echo "Ping Forever Options:"
         echo "1 - Install"
         echo "2 - Restart"
         echo "3 - Status"
-        echo "4 - Exit"
+        echo "4 - Exit to Main Menu"
         echo "Enter your choice [1-4]: "
         read sub_option
 
@@ -96,7 +104,7 @@ EOL
     done
 }
 
-# Main loop
+# Main Loop
 while true; do
     clear
     echo "Select an option:"
@@ -114,7 +122,7 @@ while true; do
                 echo "1 - Server Iran (IR)"
                 echo "2 - Server Kharej (KH)"
                 echo "3 - Delete Tunnel"
-                echo "4 - Exit"
+                echo "4 - Exit to Main Menu"
                 echo "Enter your choice [1-4]: "
                 read tunnel_option
 
@@ -136,17 +144,16 @@ while true; do
                         echo "Invalid option. Please try again."
                         ;;
                 esac
-                echo "Press any key to return to the main menu..."
+                echo "Press any key to return to the Tunnel menu..."
                 read -n 1
             done
             ;;
         2)
-            echo "Ping Forever is only available for Server Kharej (KH)."
             ping_forever_kh
             ;;
         3)
             echo "Exiting script."
-            break
+            exit 0
             ;;
         *)
             echo "Invalid option. Please try again."
