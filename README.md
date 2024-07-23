@@ -1,6 +1,4 @@
 # Tunnel
-[![Downloads](https://img.shields.io/github/downloads/0fariid0/tunel/total?style=flat-square&logo=github)](https://github.com/0fariid0/tunel/releases/)
-
 
 ## Description
 
