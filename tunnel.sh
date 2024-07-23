@@ -30,42 +30,65 @@ configure_haproxy() {
     echo "Configuring HAProxy..."
 
     # Read number of servers
-    echo "Enter the number of servers:"
+    echo "Enter the number of servers you want to configure:"
     read num_servers
 
     # Initialize configuration file
     config_file="/etc/haproxy/haproxy.cfg"
-    echo "global" > $config_file
-    echo "   log \"stdout\" format rfc5424 daemon  notice" >> $config_file
-    echo "" >> $config_file
-    echo "defaults" >> $config_file
-    echo "   mode tcp" >> $config_file
-    echo "   log global" >> $config_file
-    echo "   balance leastconn" >> $config_file
-    echo "   timeout connect 5s" >> $config_file
-    echo "   timeout server 30s" >> $config_file
-    echo "   timeout client 30s" >> $config_file
-    echo "   default-server inter 15s" >> $config_file
-    echo "" >> $config_file
 
-    # Read frontends and ports
-    for i in $(seq 1 $num_servers); do
-        echo "Enter ports for server $i (space-separated):"
-        read ports
+    # Backup the old configuration file
+    sudo cp $config_file $config_file.bak
 
-        # Add frontend configuration
-        echo "frontend server${i}-frontend" >> $config_file
-        for port in $ports; do
-            echo "   bind *:$port" >> $config_file
-        done
-        echo "   log global" >> $config_file
-        echo "   use_backend server${i}-backend-servers" >> $config_file
-        echo "" >> $config_file
+    # Initialize the new configuration
+    echo "global" | sudo tee $config_file > /dev/null
+    echo "   log \"stdout\" format rfc5424 daemon  notice" | sudo tee -a $config_file > /dev/null
+    echo "" | sudo tee -a $config_file > /dev/null
+    echo "defaults" | sudo tee -a $config_file > /dev/null
+    echo "   mode tcp" | sudo tee -a $config_file > /dev/null
+    echo "   log global" | sudo tee -a $config_file > /dev/null
+    echo "   balance leastconn" | sudo tee -a $config_file > /dev/null
+    echo "   timeout connect 5s" | sudo tee -a $config_file > /dev/null
+    echo "   timeout server 30s" | sudo tee -a $config_file > /dev/null
+    echo "   timeout client 30s" | sudo tee -a $config_file > /dev/null
+    echo "   default-server inter 15s" | sudo tee -a $config_file > /dev/null
+    echo "" | sudo tee -a $config_file > /dev/null
 
-        # Add backend configuration
-        echo "backend server${i}-backend-servers" >> $config_file
-        echo "   server server${i} [2002:fb8:2${i}1::2]" >> $config_file
-        echo "" >> $config_file
+    # Read which tunnels to forward
+    echo "Enter the tunnel numbers you want to forward (space-separated):"
+    read tunnels
+
+    # Add frontends and backends for selected tunnels
+    for tunnel in $tunnels; do
+        if [ "$tunnel" -eq 2 ]; then
+            echo "frontend xray-frontend" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:1030" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:56855" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:27028" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:32942" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:39464" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:47903" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:31" | sudo tee -a $config_file > /dev/null
+            echo "   log global" | sudo tee -a $config_file > /dev/null
+            echo "   use_backend xray-backend-servers" | sudo tee -a $config_file > /dev/null
+            echo "" | sudo tee -a $config_file > /dev/null
+            echo "backend xray-backend-servers" | sudo tee -a $config_file > /dev/null
+            echo "   server gate1 [2002:fb8:222::2]" | sudo tee -a $config_file > /dev/null
+            echo "" | sudo tee -a $config_file > /dev/null
+        fi
+        if [ "$tunnel" -eq 5 ]; then
+            echo "frontend xray5-frontend" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:12395" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:53057" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:50048" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:38558" | sudo tee -a $config_file > /dev/null
+            echo "   bind *:1011" | sudo tee -a $config_file > /dev/null
+            echo "   log global" | sudo tee -a $config_file > /dev/null
+            echo "   use_backend xray5-backend-servers" | sudo tee -a $config_file > /dev/null
+            echo "" | sudo tee -a $config_file > /dev/null
+            echo "backend xray5-backend-servers" | sudo tee -a $config_file > /dev/null
+            echo "   server gate5 [2002:fb8:225::2]" | sudo tee -a $config_file > /dev/null
+            echo "" | sudo tee -a $config_file > /dev/null
+        fi
     done
 
     # Restart haproxy to apply changes
