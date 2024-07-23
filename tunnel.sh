@@ -84,6 +84,9 @@ setup_netplan() {
     sudo systemctl restart networking
     sudo netplan apply
     sudo systemctl restart networking
+    sudo netplan apply
+    sudo systemctl restart networking
+    sudo netplan apply
 }
 
 # Function to display the tunnel menu
