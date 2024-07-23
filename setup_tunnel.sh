@@ -1,13 +1,27 @@
 #!/bin/bash
 
-# Download the script
-echo "Downloading the script..."
+# Download the tunnel script
+echo "Downloading the tunnel script..."
 wget https://raw.githubusercontent.com/0fariid0/tunel/main/tunnel.sh
 
-# Make the script executable
-echo "Making the script executable..."
+# Check if the download was successful
+if [ $? -ne 0 ]; then
+    echo "Failed to download the tunnel script. Exiting."
+    exit 1
+fi
+
+# Make the tunnel script executable
+echo "Making the tunnel script executable..."
 chmod +x tunnel.sh
 
-# Execute the script
-echo "Executing the script..."
+# Execute the tunnel script
+echo "Executing the tunnel script..."
 sudo ./tunnel.sh
+
+# Check if the execution was successful
+if [ $? -ne 0 ]; then
+    echo "Failed to execute the tunnel script. Exiting."
+    exit 1
+fi
+
+echo "Tunnel script executed successfully."
