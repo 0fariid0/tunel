@@ -28,8 +28,6 @@ install_haproxy() {
 # Helper function to configure haproxy
 configure_haproxy() {
     echo "Configuring HAProxy..."
-
-    # Initialize configuration file
     config_file="/etc/haproxy/haproxy.cfg"
     echo "global" > $config_file
     echo "   log \"stdout\" format rfc5424 daemon  notice" >> $config_file
@@ -44,7 +42,6 @@ configure_haproxy() {
     echo "   default-server inter 15s" >> $config_file
     echo "" >> $config_file
 
-    # Read tunnel numbers
     while true; do
         echo "Enter the tunnel numbers you want to configure (space-separated, e.g., 1 2 3):"
         read -r tunnel_numbers
@@ -55,7 +52,6 @@ configure_haproxy() {
         fi
     done
 
-    # Configure each tunnel
     for tunnel_number in $tunnel_numbers; do
         if [[ $tunnel_number -ge 1 && $tunnel_number -le 9 ]]; then
             while true; do
@@ -68,7 +64,6 @@ configure_haproxy() {
                 fi
             done
 
-            # Add frontend configuration
             echo "frontend tunnel${tunnel_number}-frontend" >> $config_file
             for port in $ports; do
                 echo "   bind *:$port" >> $config_file
@@ -77,7 +72,6 @@ configure_haproxy() {
             echo "   use_backend tunnel${tunnel_number}-backend-servers" >> $config_file
             echo "" >> $config_file
 
-            # Add backend configuration
             echo "backend tunnel${tunnel_number}-backend-servers" >> $config_file
             echo "   server tunnel${tunnel_number} [2002:fb8:22${tunnel_number}::2]" >> $config_file
             echo "" >> $config_file
@@ -86,7 +80,6 @@ configure_haproxy() {
         fi
     done
 
-    # Restart haproxy to apply changes
     restart_haproxy
 }
 
@@ -107,7 +100,7 @@ install_netplan() {
 # Function to display the tunnel menu
 display_tunnel_menu() {
     echo "Select an option:"
-    echo "1 - Install Tunnel"  # Option to install Netplan
+    echo "1 - Install Tunnel"
     echo "2 - Server Iran (IR)"
     echo "3 - Server Kharej (KH)"
     echo "4 - Delete Tunnel"
@@ -135,7 +128,6 @@ delete_tunnel() {
         fi
     done
 
-    # Ask the user if they want to reboot the server
     while true; do
         read -p "Do you want to reboot the server now? (y/n): " REBOOT_ANSWER
         case $REBOOT_ANSWER in
@@ -155,17 +147,19 @@ delete_tunnel() {
         esac
     done
 }
+
 # Function to handle the creation or updating of a tunnel
 create_or_update_tunnel() {
     while true; do
         read -p "Enter the tunnel number: " TUNNEL_NUMBER
         if [ -n "$TUNNEL_NUMBER" ]; then
-            FILE_PATH="/etc/netplan/tunnel${TUNNEL_NUMBER}.yaml"
             break
         else
             echo "Tunnel number cannot be empty. Please try again."
         fi
     done
+
+    FILE_PATH="/etc/netplan/tunnel${TUNNEL_NUMBER}.yaml"
 
     while true; do
         read -p "Enter the local IP address: " LOCAL_IP
@@ -185,7 +179,6 @@ create_or_update_tunnel() {
         fi
     done
 
-    # Define the address based on the server type
     if [ "$SERVER_TYPE" == "ir" ]; then
         ADDRESS="2002:fb8:22${TUNNEL_NUMBER}::1/64"
     elif [ "$SERVER_TYPE" == "kh" ]; then
@@ -213,7 +206,6 @@ create_or_update_tunnel() {
     echo "$NEW_CONTENT" | sudo tee "$FILE_PATH" > /dev/null
     sudo netplan apply
 
-    # Ask the user if they want to reboot the server
     while true; do
         read -p "Do you want to reboot the server now? (y/n): " REBOOT_ANSWER
         case $REBOOT_ANSWER in
@@ -266,24 +258,26 @@ while true; do
                         delete_tunnel
                         ;;
                     5)
-                        break  # Back to the main menu
+                        echo "Returning to main menu..."
+                        break
                         ;;
                     *)
                         echo "Invalid option. Please try again."
                         ;;
                 esac
+                echo "Press any key to continue..."
+                read -n 1
             done
             ;;
         2)
             while true; do
                 clear
-                echo "HAProxy Management Menu:"
-                echo "1 - Install HAProxy"
-                echo "2 - Start HAProxy"
-                echo "3 - Stop HAProxy"
-                echo "4 - Restart HAProxy"
-                echo "5 - Configure HAProxy"
-                echo "6 - Back to Main Menu"
+                echo "Select an option for HAProxy:"
+                echo "1 - Install"
+                echo "2 - Configure HAProxy"
+                echo "3 - Start HAProxy"
+                echo "4 - Stop HAProxy"
+                echo "5 - Back to Main Menu"
                 read -r haproxy_option
 
                 case $haproxy_option in
@@ -291,24 +285,24 @@ while true; do
                         install_haproxy
                         ;;
                     2)
-                        start_haproxy
-                        ;;
-                    3)
-                        stop_haproxy
-                        ;;
-                    4)
-                        restart_haproxy
-                        ;;
-                    5)
                         configure_haproxy
                         ;;
-                    6)
-                        break  # Back to the main menu
+                    3)
+                        start_haproxy
+                        ;;
+                    4)
+                        stop_haproxy
+                        ;;
+                    5)
+                        echo "Returning to main menu..."
+                        break
                         ;;
                     *)
                         echo "Invalid option. Please try again."
                         ;;
                 esac
+                echo "Press any key to continue..."
+                read -n 1
             done
             ;;
         3)
