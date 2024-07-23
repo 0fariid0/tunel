@@ -1,4 +1,4 @@
-# Netplan Tunnel and Ping Forever Script
+#  Tunnel
 
 ## Description
 
