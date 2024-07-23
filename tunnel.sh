@@ -278,4 +278,7 @@ while true; do
             ;;
         3)
             echo "Exiting..."
-            exit
+            exit 0
+            ;;
+        *)
+           
