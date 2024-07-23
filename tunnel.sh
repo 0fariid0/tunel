@@ -91,7 +91,7 @@ EOL
                 echo "Invalid option. Please try again."
                 ;;
         esac
-        echo "Press any key to return to the main menu..."
+        echo "Press any key to return to the Ping Forever menu..."
         read -n 1
     done
 }
