@@ -277,8 +277,4 @@ while true; do
             done
             ;;
         3)
-            echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo
+            echo "Exiting
