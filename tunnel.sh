@@ -76,35 +76,28 @@ configure_haproxy() {
     restart_haproxy
 }
 
-# Function to install and configure netplan if not done before
-setup_netplan_once() {
-    CONFIG_FLAG="/etc/netplan/netplan_configured"
-
-    if [ ! -f "$CONFIG_FLAG" ]; then
-        echo "Installing and configuring netplan..."
-        sudo apt install netplan.io -y
-        sudo systemctl unmask systemd-networkd.service
-        sudo systemctl restart networking
-        sudo netplan apply
-        sudo systemctl restart networking
-        sudo netplan apply
-        sudo systemctl restart networking
-        sudo netplan apply
-
-        # Create the flag file to indicate configuration has been done
-        sudo touch "$CONFIG_FLAG"
-    else
-        echo "Netplan is already configured."
-    fi
+# Function to install and configure netplan
+install_netplan() {
+    echo "Installing and configuring netplan..."
+    sudo apt install netplan.io -y
+    sudo systemctl unmask systemd-networkd.service
+    sudo systemctl restart networking
+    sudo netplan apply
+    sudo systemctl restart networking
+    sudo netplan apply
+    sudo systemctl restart networking
+    sudo netplan apply
+    echo "Netplan installation and configuration complete."
 }
 
 # Function to display the tunnel menu
 display_tunnel_menu() {
     echo "Select an option:"
-    echo "1 - Server Iran (IR)"
-    echo "2 - Server Kharej (KH)"
-    echo "3 - Delete Tunnel"
-    echo "4 - Back to Main Menu"
+    echo "1 - Install Netplan"
+    echo "2 - Server Iran (IR)"
+    echo "3 - Server Kharej (KH)"
+    echo "4 - Delete Tunnel"
+    echo "5 - Back to Main Menu"
 }
 
 # Function to handle the deletion of the tunnel
@@ -210,25 +203,27 @@ while true; do
 
     case $main_option in
         1)
-            setup_netplan_once
             while true; do
                 clear
                 display_tunnel_menu
-                read -p "Enter your choice [1-4]: " tunnel_option
+                read -p "Enter your choice [1-5]: " tunnel_option
 
                 case $tunnel_option in
                     1)
+                        install_netplan
+                        ;;
+                    2)
                         SERVER_TYPE="ir"
                         create_or_update_tunnel
                         ;;
-                    2)
+                    3)
                         SERVER_TYPE="kh"
                         create_or_update_tunnel
                         ;;
-                    3)
+                    4)
                         delete_tunnel
                         ;;
-                    4)
+                    5)
                         echo "Returning to main menu..."
                         break
                         ;;
@@ -277,4 +272,11 @@ while true; do
             done
             ;;
         3)
-            echo "Exiting
+            echo "Exiting..."
+            exit 0
+            ;;
+        *)
+            echo "Invalid option. Please try again."
+            ;;
+    esac
+done
