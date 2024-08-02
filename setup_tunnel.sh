@@ -19,3 +19,6 @@ chmod +x $UPDATE_SCRIPT_PATH
 # Execute the tunnel script
 echo "Executing the tunnel script..."
 sudo $TUNNEL_SCRIPT_PATH
+
+# Inform the user
+echo "The tunnel script has been executed successfully."
